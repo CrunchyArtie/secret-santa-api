@@ -1,0 +1,13 @@
+extends shared-layout
+
+block content
+  h2 Secret Santa Users
+  ul
+    if users.length < 1
+      p No users in database
+    else
+      each user in users
+        li
+          span=user
+          = ' '
+          a(href="/users/edit/"+user) edit

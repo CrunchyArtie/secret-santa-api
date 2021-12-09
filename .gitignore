@@ -28,4 +28,7 @@ node_modules/
 !/data/.gitkeep
 
 # phpstorm
-.idea/
+/.idea/
+
+# nodemon
+/nodemon.json

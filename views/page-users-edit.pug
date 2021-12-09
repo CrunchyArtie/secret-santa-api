@@ -1,0 +1,12 @@
+extends shared-layout
+
+block content
+  if username
+    h2 Secret Santa edit #{username}
+    form(action="/users/edit", method="post")
+      input(type="hidden", name="username", value=username)
+      input(type="password", name="password", placeholder="password")
+      input(type="submit", value="edit")
+  if errors
+    each error in errors
+      p= error
