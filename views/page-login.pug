@@ -9,7 +9,7 @@ block content
     h2 login
     form(action="/auth/login", method="post")
       input(type="text", name="username", placeholder="username", value="CrunchyArtie")
-      input(type="password", name="password", placeholder="password", value="crunchysecret")
+      input(type="password", name="password", placeholder="password")
       input(type="submit", value="login")
     if errors
       each error in errors
