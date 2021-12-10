@@ -23,10 +23,6 @@ node_modules/
 .env
 .env.test
 
-# database
-/data/
-!/data/.gitkeep
-
 # phpstorm
 /.idea/
 
