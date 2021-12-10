@@ -1,6 +1,6 @@
 const express = require('express');
 const moment = require("moment");
-const ApiResponse = require("../../models/response");
+const ApiResponse = require("../../response");
 const router = express.Router();
 
 /* GET users listing. */

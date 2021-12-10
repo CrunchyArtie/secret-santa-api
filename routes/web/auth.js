@@ -1,7 +1,7 @@
 const express = require('express');
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const admins = require("../../database/admins");
+const db = require("../../models/index");
 const webAuth = require('../../middleware/web-auth')
 const router = express.Router();
 
@@ -17,8 +17,8 @@ router.post('/login', (req, res, next) => {
     if (!username || !password) {
         res.render('page-login', {errors: ['invalid credentials']});
     } else {
-        admins.getUser(username,
-            (user) => {
+        db.Admin.findOne({where: {username: username}})
+            .then((user) => {
                 if (!!user && bcrypt.compareSync(password, user.hash)) {
                     req.session.token = jwt.sign(
                         {username},
@@ -28,7 +28,7 @@ router.post('/login', (req, res, next) => {
                 } else {
                     res.render('page-login', {errors: ['invalid credentials']});
                 }
-            }, (error) => {
+            }).catch((error) => {
                 console.error(error);
                 res.render('page-login', {errors: ['Server error']});
             }

@@ -1,7 +1,8 @@
 const express = require('express');
 const apiAuth = require("../../middleware/api-auth");
-const ApiResponse = require("../../models/response");
+const ApiResponse = require("../../response");
 const router = express.Router();
+const db = require("../../models/index");
 
 /* GET users listing. */
 router.get('/', apiAuth, (req, res, next) => {

@@ -2,8 +2,8 @@ const express = require('express');
 const router = express.Router();
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
-const users = require('../../database/users');
-const ApiResponse = require("../../models/response");
+const ApiResponse = require("../../response");
+const db = require("../../models/index");
 
 router.post("/register", (req, res) => {
     try {
@@ -22,23 +22,23 @@ router.post("/register", (req, res) => {
             return res.status(401).send(new ApiResponse(null, errors).toJson());
         }
 
-        users.getUser(username,
-            (oldUser) => {
-                if (oldUser) {
+        db.User.findOne({where: {username: username}})
+            .then((oldUser) => {
+                if (!!oldUser) {
                     return res.status(409).send(new ApiResponse(null, ["Le pseudo est déjà utilisé."]).toJson());
                 }
 
                 const hash = bcrypt.hashSync(password, 10);
                 const token = getToken(username)
-                users.insertUser({username, hash}, () => {
-                    return res.status(201).send(new ApiResponse({username, token}).toJson());
-                }, (error) => {
-                    console.error(error);
-                    return res.status(500).send(new ApiResponse(null, [error.message]).toJson());
-                });
+                db.User.create({username: username, hash: hash})
+                    .then(() => res.status(201).send(new ApiResponse({username, token}).toJson()))
+                    .catch((error) => {
+                        console.error(error);
+                        return res.status(500).send(new ApiResponse(null, [error.message]).toJson());
+                    });
 
-            },
-            (error) => {
+            })
+            .catch((error) => {
                 console.error(error);
                 return res.status(500).send(new ApiResponse(null, [error.message]).toJson());
             });
@@ -62,14 +62,15 @@ router.post("/login", (req, res) => {
             return res.status(409).send(new ApiResponse(null, errors).toJson());
         }
 
-        users.getUser(username, (user) => {
+        db.User.findOne({where: {username: username}})
+            .catch((user) => {
                 if (!!user && bcrypt.compareSync(password, user.hash)) {
                     user.token = getToken(user)
                     return res.status(200).send(new ApiResponse(user).toJson());
                 } else {
                     return res.status(400).send(new ApiResponse(null, ['Pas d\'utilisateur pour ces identifiants']).toJson());
                 }
-            }, (error) => {
+            }).catch((error) => {
                 console.error(error);
                 return res.status(500).send(new ApiResponse(null, [error.message]).toJson());
             }

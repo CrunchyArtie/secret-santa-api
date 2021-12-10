@@ -1,9 +1,7 @@
 #!/usr/bin/env node
 require('dotenv').config();
 
-const users = require('../database/users');
-const admins = require("../database/admins");
-const config = require("../database/config");
+const db = require("../models/index");
 const bcrypt = require("bcryptjs");
 
 /**
@@ -13,45 +11,26 @@ const debug = require('debug')('secret-santa-beta-api:setup');
 
 debug('setup the api');
 
-debug('sqlite tables creation');
-config.createConfigTable(() => {
-    debug('config table created or already exist');
-    const defaultData = [{key: 'maintenance', value: "true"}];
+debug('fill tables');
+const defaultData = [{key: 'maintenance', value: "true"}];
 
-    defaultData.forEach((row) => {
-        config.getValue(row.key, (parameter) => {
-            if(!!parameter) {
-                debug(row.key + ' already exist.')
-            } else {
-                config.insertValue(row, () => debug('config filled'), err => console.error(err))
-            }
-        }, err => console.error(err));
+defaultData.forEach((row) => {
+    db.Config.findOrCreate({where: {key: row.key}, defaults: {key: row.key, value: row.value}})
+        .then((parameter) => debug(row.key + ' config value in database'))
+        .catch(err => console.error(err))
+});
+
+const [adminUsername, adminPassword] = [process.env.ADMIN_USER, process.env.ADMIN_PASSWORD];
+
+if (!!adminUsername && !!adminPassword) {
+    const hash = bcrypt.hashSync(adminPassword, 10);
+    db.Admin.findOrCreate({
+        where: {username: adminUsername},
+        defaults: {username: adminUsername, hash: bcrypt.hashSync(adminPassword, 10)}
     })
-}, err => console.error(err));
-
-admins.createAdminsTable(() => {
-    debug('admins table created or already exist');
-
-    const [adminUsername, adminPassword] = [process.env.ADMIN_USER, process.env.ADMIN_PASSWORD];
-
-    if (!!adminUsername && !!adminPassword) {
-        const hash = bcrypt.hashSync(adminPassword, 10);
-        admins.getUser(adminUsername, (user) => {
-                if (!!user) {
-                    debug('admin already exist.');
-                } else {
-                    admins.insertUser({
-                        username: adminUsername,
-                        hash
-                    }, () => debug('admin added'), err => console.error(err))
-                }
-            }, err => console.error(err)
-        )
-    } else {
-        debug('no admin data to set up.')
-    }
-
-}, err => console.error(err));
-
-users.createUsersTable(() => debug('users table created or already exist'), err => console.error(err));
+        .then(() => debug('admin in database'))
+        .catch(err => console.error(err))
+} else {
+    debug('no admin data to set up.')
+}
 

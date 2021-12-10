@@ -1,6 +1,6 @@
 const express = require('express');
 const _ = require("lodash");
-const config = require("../../database/config");
+const db = require("../../models/index");
 const webAuth = require("../../middleware/web-auth");
 const router = express.Router();
 
@@ -8,33 +8,30 @@ router.get('/', webAuth, (req, res, next) => {
     let errors = [];
     const flash = req.query.flash;
 
-    if(!!flash) {
+    if (!!flash) {
         const temp = JSON.parse(flash);
-        if(_.has(temp, 'errors')) {
+        if (_.has(temp, 'errors')) {
             errors = temp.errors;
         }
     }
 
-    config.getAll((config) => {
-        res.render('page-config', {config, errors});
-    }, (err) => {
-        throw err
-    })
+    db.Config.findAll()
+        .then((config) => res.render('page-config', {config, errors}))
+        .catch((err) => console.error(err))
 });
 
 router.post('/edit', webAuth, (req, res, next) => {
     const {key, value} = req.body;
 
     if (!key || !value) {
-        res.redirect('/config?flash='+ JSON.stringify({errors: ['invalid data']}));
+        res.redirect('/config?flash=' + JSON.stringify({errors: ['invalid data']}));
     } else {
-        config.update(key, value,
-            () => res.redirect('/config'),
-            (error) => {
+        db.Config.update({value: value}, {where: {key: key}})
+            .then(() => res.redirect('/config'))
+            .catch((error) => {
                 console.error(error);
-                res.redirect('/config?flash='+ JSON.stringify({errors: ['Server error']}));
-            }
-        )
+                res.redirect('/config?flash=' + JSON.stringify({errors: ['Server error']}));
+            })
     }
 })
 
