@@ -2,12 +2,18 @@ extends shared-layout
 
 block content
   h2 Secret Santa edit config
+
+  table
     each row in config
-      form(action="/config/edit", method="post")
-        span=row.key
-        input(type="hidden", name='key', value=row.key)
-        input(type="text", name='value', value=row.value)
-        input(type="submit", value="Save")
+      tr
+        form(action="/config/edit", method="post")
+          td=row.key
+          td
+            input(type="hidden", name='key', value=row.key)
+          td
+            input(type="text", name='value', value=row.value)
+          td
+            input(type="submit", value="Save")
   if errors
     each error in errors
       p= error

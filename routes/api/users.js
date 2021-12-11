@@ -63,10 +63,10 @@ router.post("/login", (req, res) => {
         }
 
         db.User.findOne({where: {username: username}})
-            .catch((user) => {
+            .then((user) => {
                 if (!!user && bcrypt.compareSync(password, user.hash)) {
-                    user.token = getToken(user)
-                    return res.status(200).send(new ApiResponse(user).toJson());
+                    const token = getToken(user)
+                    return res.status(200).send(new ApiResponse({username: user.get('username'), token}).toJson());
                 } else {
                     return res.status(400).send(new ApiResponse(null, ['Pas d\'utilisateur pour ces identifiants']).toJson());
                 }

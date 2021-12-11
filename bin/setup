@@ -3,6 +3,7 @@ require('dotenv').config();
 
 const db = require("../models/index");
 const bcrypt = require("bcryptjs");
+const moment = require("moment");
 
 /**
  * Module dependencies.
@@ -12,7 +13,12 @@ const debug = require('debug')('secret-santa-beta-api:setup');
 debug('setup the api');
 
 debug('fill tables');
-const defaultData = [{key: 'maintenance', value: "true"}];
+const rawDate = process.env.SECRET_SANTA_LIMIT_DATE;
+const dateFormat = process.env.SECRET_SANTA_LIMIT_DATE_FORMAT;
+const date = moment(rawDate, dateFormat).add(12, 'h');
+const apiFriendlyDate = date.utc().format();
+
+const defaultData = [{key: 'maintenance', value: "true"}, {key: 'due_date', value: apiFriendlyDate}];
 
 defaultData.forEach((row) => {
     db.Config.findOrCreate({where: {key: row.key}, defaults: {key: row.key, value: row.value}})

@@ -1,15 +1,19 @@
 const express = require('express');
 const moment = require("moment");
 const ApiResponse = require("../../response");
+const db = require("../../models/index");
 const router = express.Router();
 
 /* GET users listing. */
 router.get('/', (req, res, next) => {
-    const rawDate = process.env.SECRET_SANTA_LIMIT_DATE;
-    const dateFormat = process.env.SECRET_SANTA_LIMIT_DATE_FORMAT;
-    const date = moment(rawDate, dateFormat).add(12, 'h');
-    const apiFriendlyDate = date.utc().format();
-    res.send(new ApiResponse(apiFriendlyDate));
+    db.Config.findOne({where: {key: 'due_date'}})
+        .then((parameter) => {
+            if (!!parameter) {
+                return res.send(new ApiResponse(parameter.value));
+            } else {
+                return res.send(new ApiResponse(moment().add(1, "y").utc().format()));
+            }
+        })
 });
 
 module.exports = router;
